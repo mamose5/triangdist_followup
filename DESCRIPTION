@@ -4,8 +4,7 @@ Version: 0.1.0
 Authors@R: 
     person("Jaorme", "11", , "jaorme@alumni.uv.es", role = c("aut", "cre"))
 Description: Formal implementation of the Triangular Distribution.
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
