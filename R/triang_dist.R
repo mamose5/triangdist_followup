@@ -14,10 +14,30 @@ dtriang <- function(x, min = 0, max = 1, mode = 0.5) {
   x <- rep_len(x, n); min <- rep_len(min, n); max <- rep_len(max, n); mode <- rep_len(mode, n)
   res <- numeric(n)
   h <- 2 / (max - min)
-  idx1 <- x >= min & x < mode
-  res[idx1] <- h[idx1] * (x[idx1] - min[idx1]) / (mode[idx1] - min[idx1])
-  idx2 <- x >= mode & x <= max
-  res[idx2] <- h[idx2] * (max[idx2] - x[idx2]) / (max[idx2] - mode[idx2])
+
+  # Caso especial: mode == min (triángulo decreciente)
+  mode_eq_min <- mode == min
+  if (any(mode_eq_min)) {
+    idx <- x >= min & x <= max & mode_eq_min
+    res[idx] <- h[idx] * (max[idx] - x[idx]) / (max[idx] - min[idx])
+  }
+
+  # Caso especial: mode == max (triángulo creciente)
+  mode_eq_max <- mode == max
+  if (any(mode_eq_max)) {
+    idx <- x >= min & x <= max & mode_eq_max
+    res[idx] <- h[idx] * (x[idx] - min[idx]) / (max[idx] - min[idx])
+  }
+
+  # Caso normal: min < mode < max
+  normal <- !mode_eq_min & !mode_eq_max
+  if (any(normal)) {
+    idx1 <- x >= min & x < mode & normal
+    res[idx1] <- h[idx1] * (x[idx1] - min[idx1]) / (mode[idx1] - min[idx1])
+    idx2 <- x >= mode & x <= max & normal
+    res[idx2] <- h[idx2] * (max[idx2] - x[idx2]) / (max[idx2] - mode[idx2])
+  }
+
   return(res)
 }
 
@@ -29,10 +49,30 @@ ptriang <- function(q, min = 0, max = 1, mode = 0.5) {
   q <- rep_len(q, n); min <- rep_len(min, n); max <- rep_len(max, n); mode <- rep_len(mode, n)
   res <- numeric(n)
   res[q >= max] <- 1
-  idx1 <- q >= min & q < mode
-  res[idx1] <- (q[idx1] - min[idx1])^2 / ((max[idx1] - min[idx1]) * (mode[idx1] - min[idx1]))
-  idx2 <- q >= mode & q < max
-  res[idx2] <- 1 - (max[idx2] - q[idx2])^2 / ((max[idx2] - min[idx2]) * (max[idx2] - mode[idx2]))
+
+  # Caso normal
+  normal <- !(mode == min | mode == max)
+  if (any(normal)) {
+    idx1 <- q >= min & q < mode & normal
+    res[idx1] <- (q[idx1] - min[idx1])^2 / ((max[idx1] - min[idx1]) * (mode[idx1] - min[idx1]))
+    idx2 <- q >= mode & q < max & normal
+    res[idx2] <- 1 - (max[idx2] - q[idx2])^2 / ((max[idx2] - min[idx2]) * (max[idx2] - mode[idx2]))
+  }
+
+  # mode == min (decreciente)
+  mode_eq_min <- mode == min
+  if (any(mode_eq_min)) {
+    idx <- q >= min & q < max & mode_eq_min
+    res[idx] <- 1 - (max[idx] - q[idx])^2 / ((max[idx] - min[idx])^2)
+  }
+
+  # mode == max (creciente)
+  mode_eq_max <- mode == max
+  if (any(mode_eq_max)) {
+    idx <- q >= min & q < max & mode_eq_max
+    res[idx] <- (q[idx] - min[idx])^2 / ((max[idx] - min[idx])^2)
+  }
+
   return(res)
 }
 
@@ -54,6 +94,7 @@ qtriang <- function(p, min = 0, max = 1, mode = 0.5) {
 
 #' @rdname dtriang
 #' @export
+#' @importFrom stats runif
 rtriang <- function(n, min = 0, max = 1, mode = 0.5) {
   return(qtriang(runif(n), min, max, mode))
 }
